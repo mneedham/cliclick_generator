@@ -4,28 +4,10 @@ import pyparsing as pp
 import commonmark
 import frontmatter
 import difflib
-
-class SeenCommands:
-    def __init__(self):
-        self.commands = {"1": []}
-        self.current_tab = "1"
-
-    def set_current_tab(self, current_tab):
-        self.current_tab = current_tab
-        if not current_tab in self.commands:
-            self.commands[current_tab] = []
-    
-    def add(self, command):
-        self.commands[self.current_tab].append("\n".join(command))
-
-    def find_previous_similar_command(self, command_to_find):
-        command_to_find_str = "\n".join(command_to_find)
-
-        for command in reversed(self.commands[self.current_tab]):
-            if command.startswith(command_to_find_str.split(" ")[0]):
-                return command
+from seen_commands import SeenCommands
 
 command = (
+    (pp.Literal("cliclick") + pp.Suppress(":") + pp.Word(pp.alphas+"-") + pp.Literal(":") + pp.Word(pp.alphanums+"-") + pp.Suppress(",") + pp.Word(pp.nums)) | 
     (pp.Literal("selectWindow") + pp.Literal(":") + pp.Word(pp.nums)) | 
     (pp.Literal("scrollDown") + pp.Literal(":") + pp.Word(pp.nums)) | 
     (pp.Literal("selectTab") + pp.Literal(":") + pp.Word(pp.nums)) |
@@ -49,6 +31,11 @@ page_keys = {
 
 def to_cliclick(parsed_row, seen_commands):
     cliclick_commands = []
+    if parsed_row[0] == "cliclick":
+        for i in range(0, int(parsed_row[4])):
+            cliclick_commands.append("".join(parsed_row[1:4]))
+
+
     if parsed_row[0] == "selectWindow":
         cliclick_commands.append("kd:alt")
         cliclick_commands.append(f"t:{parsed_row[2]}")
@@ -118,6 +105,22 @@ def to_cliclick(parsed_row, seen_commands):
         cliclick_commands.append(f"# {parsed_row[1]}")
     return cliclick_commands
 
+def search_command():
+    return [
+        "kd:ctrl",
+        "t:r",
+        "ku:ctrl",
+        "ku:fn"
+    ]
+
+def end_of_line_command():
+    return [
+        "kd:ctrl",
+        "t:e",
+        "ku:ctrl",
+        "ku:fn"
+    ]
+
 def parse_node(node, seen_commands):    
     if node.t  == "code_block":     
         cliclick_commands = []   
@@ -129,15 +132,9 @@ def parse_node(node, seen_commands):
             matching_index = difflib.SequenceMatcher(None, our_command, previous_command).find_longest_match().size
             bit_to_delete = previous_command[matching_index:]
 
-            cliclick_commands.append("kd:ctrl")
-            cliclick_commands.append("t:r")
-            cliclick_commands.append("ku:ctrl")
-            cliclick_commands.append("ku:fn")
+            cliclick_commands += search_command()
             cliclick_commands.append(f"t:{our_command.split(' ')[0]}")
-            cliclick_commands.append("kd:ctrl")
-            cliclick_commands.append("t:e")
-            cliclick_commands.append("ku:ctrl")
-            cliclick_commands.append("ku:fn")
+            cliclick_commands += end_of_line_command()
 
             for i in range(0, len(bit_to_delete) ):
                 cliclick_commands.append("kp:delete")
