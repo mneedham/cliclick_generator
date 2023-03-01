@@ -1,0 +1,8 @@
+#select window
+selectWindow:2
+
+#select tab
+selectTab:2
+
+#datagen
+clearScreen
