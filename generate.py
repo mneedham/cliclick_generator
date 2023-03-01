@@ -48,76 +48,79 @@ page_keys = {
 }
 
 def to_cliclick(parsed_row, seen_commands):
+    cliclick_commands = []
     if parsed_row[0] == "selectWindow":
-        print("kd:alt")
-        print(f"t:{parsed_row[2]}")
-        print("ku:alt")
+        cliclick_commands.append("kd:alt")
+        cliclick_commands.append(f"t:{parsed_row[2]}")
+        cliclick_commands.append("ku:alt")
 
     if parsed_row[0] == "wait":
-        print(f"w:{parsed_row[2]}")
+        cliclick_commands.append(f"w:{parsed_row[2]}")
 
     if parsed_row[0] == "scrollDown":
-        print(f"kd:ctrl")
+        cliclick_commands.append(f"kd:ctrl")
         for _ in range(0, int(parsed_row[2])):
-            print("t:d")
-            print('w:500')
-        print(f"ku:ctrl") 
-        print(f"ku:fn")            
+            cliclick_commands.append("t:d")
+            cliclick_commands.append('w:500')
+        cliclick_commands.append(f"ku:ctrl") 
+        cliclick_commands.append(f"ku:fn")            
             
 
     if parsed_row[0] == "selectTab":
-        print("kd:cmd")
-        print(f"t:{parsed_row[2]}")
-        print("ku:cmd")
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append(f"t:{parsed_row[2]}")
+        cliclick_commands.append("ku:cmd")
         seen_commands.set_current_tab(parsed_row[2])
 
     if parsed_row[0] == "quitLess":        
-        print("t:q")
+        cliclick_commands.append("t:q")
 
     if parsed_row[0] == "changeApp":        
-        print("kd:cmd")
-        print("kp:space")
-        print("ku:cmd")
-        print(f"t:{parsed_row[2]}")
-        print("kp:enter")
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append("kp:space")
+        cliclick_commands.append("ku:cmd")
+        cliclick_commands.append(f"t:{parsed_row[2]}")
+        cliclick_commands.append("kp:enter")
         
     if parsed_row[0] == "click":
         if parsed_row[1] == "background":
-            print("m:1980,320")
-            print("c:1980,320")
+            cliclick_commands.append("m:1980,320")
+            cliclick_commands.append("c:1980,320")
         if parsed_row[1] == "runQuery":
-            print("m:3597,757")
-            print("c:3597,757")
+            cliclick_commands.append("m:3597,757")
+            cliclick_commands.append("c:3597,757")
         if parsed_row[1] == "queryEditor":
-            print("m:1650,550")
-            print("c:1650,550")
+            cliclick_commands.append("m:1650,550")
+            cliclick_commands.append("c:1650,550")
 
     if parsed_row[0] == "movePage":
         for i in range(0, int(parsed_row[2])):
-            print(f"kp:{page_keys[parsed_row[1]]}")
+            cliclick_commands.append(f"kp:{page_keys[parsed_row[1]]}")
 
     if parsed_row[0] == "delete":
         for i in range(0, int(parsed_row[1])):
-            print("kp:delete")
+            cliclick_commands.append("kp:delete")
 
     if parsed_row[0] == "clearScreen":
-        print("kd:ctrl")
-        print("t:lu")        
-        print("ku:ctrl")
-        print("ku:fn")
-        print("w:500")
+        cliclick_commands.append("kd:ctrl")
+        cliclick_commands.append("t:lu")        
+        cliclick_commands.append("ku:ctrl")
+        cliclick_commands.append("ku:fn")
+        cliclick_commands.append("w:500")
 
     if parsed_row[0] == "selectAll":
-        print("kd:cmd")
-        print("t:a")        
-        print("ku:cmd")
-        print("ku:fn")
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append("t:a")        
+        cliclick_commands.append("ku:cmd")
+        cliclick_commands.append("ku:fn")
 
     if parsed_row[0] == "#":
-        print(f"# {parsed_row[1]}")
+        cliclick_commands.append(f"# {parsed_row[1]}")
+    return cliclick_commands
 
-def parse_node(node, seen_commands):
-    if node.t  == "code_block":
+def parse_node(node, seen_commands):    
+    if node.t  == "code_block":     
+        cliclick_commands = []   
         lines = [line for line in node.literal.split("\n") if line != ""]
 
         previous_command = seen_commands.find_previous_similar_command(lines)        
@@ -126,54 +129,53 @@ def parse_node(node, seen_commands):
             matching_index = difflib.SequenceMatcher(None, our_command, previous_command).find_longest_match().size
             bit_to_delete = previous_command[matching_index:]
 
-            print("kd:ctrl")
-            print("t:r")
-            print("ku:ctrl")
-            print("ku:fn")
-            print(f"t:{our_command.split(' ')[0]}")
-            print("kd:ctrl")
-            print("t:e")
-            print("ku:ctrl")
-            print("ku:fn")
+            cliclick_commands.append("kd:ctrl")
+            cliclick_commands.append("t:r")
+            cliclick_commands.append("ku:ctrl")
+            cliclick_commands.append("ku:fn")
+            cliclick_commands.append(f"t:{our_command.split(' ')[0]}")
+            cliclick_commands.append("kd:ctrl")
+            cliclick_commands.append("t:e")
+            cliclick_commands.append("ku:ctrl")
+            cliclick_commands.append("ku:fn")
 
             for i in range(0, len(bit_to_delete) ):
-                print("kp:delete")
-            print(f"t:{our_command[matching_index:]}")
-            print("kp:enter")
+                cliclick_commands.append("kp:delete")
+            cliclick_commands.append(f"t:{our_command[matching_index:]}")
+            cliclick_commands.append("kp:enter")
 
         else:
+            previous_leading_spaces = -1
             for idx,line in enumerate(lines):
                 if node.info == "web":
-                    print("kd:cmd")
-                    print("kd:shift")
-                    print("kp:arrow-left")
-                    print("ku:shift")
-                    print("ku:cmd")
-                    print("ku:fn")
                     leading_spaces = len(line) - len(line.lstrip())
-                    for i in range(0, leading_spaces):
-                        print("kp:space")
-                    print(f"t:{line.lstrip()}")
+                    if leading_spaces == previous_leading_spaces:
+                        cliclick_commands.append(f"t:{line.lstrip()}")
+                    else:
+                        cliclick_commands.append("kd:cmd")
+                        cliclick_commands.append("kd:shift")
+                        cliclick_commands.append("kp:arrow-left")
+                        cliclick_commands.append("ku:shift")
+                        cliclick_commands.append("ku:cmd")
+                        cliclick_commands.append("ku:fn")                    
+                        for i in range(0, leading_spaces):
+                            cliclick_commands.append("kp:space")
+                        cliclick_commands.append(f"t:{line.lstrip()}")
                     if idx != len(lines)-1:                        
-                        print("kp:enter")
+                        cliclick_commands.append("kp:enter")
+                    previous_leading_spaces = leading_spaces
                 else:
-                    print(f"t:{line.lstrip()}")
-                    print("kp:enter")
+                    cliclick_commands.append(f"t:{line.lstrip()}")
+                    cliclick_commands.append("kp:enter")
         
         seen_commands.add(lines)
+        return cliclick_commands
 
     elif node.t == "text":
         if node.literal:
-            to_cliclick(parse_line(node.literal), seen_commands)
-    elif node.t == "code":
-        for item in node.literal.split(" "):
-            arr = item.split("_")
-            if len(arr) > 1:
-                repeat = arr[-1]
-                for i in range(0, int(repeat)):
-                    print(f"{arr[0]}")
-            else:
-                print(f"{item}")
+            return to_cliclick(parse_line(node.literal), seen_commands)
+    else:
+        return []
 
 @click.command()
 @click.option('--file-name', required=True, default=None, help='File path')
@@ -192,7 +194,8 @@ def generate(file_name):
             ast = parser.parse(post.content)
             all_nodes = [node[0] for node in ast.walker()]
             for node in all_nodes:
-                parse_node(node, seen_commands)
+                for command in parse_node(node, seen_commands):
+                    print(command)
 
 if __name__ == "__main__":
     generate()
