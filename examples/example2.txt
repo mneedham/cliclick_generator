@@ -1,0 +1,14 @@
+clearScreen
+```web
+SELECT uuid, ST_DISTANCE(point, ST_Point(-122, 37, 1))
+FROM events_geo
+WHERE ST_DISTANCE(point, ST_Point(-122, 37, 1)) < 50000
+limit 1000
+```
+
+```
+SELECT uuid, ST_DISTANCE(point, ST_Point(-122, 37, 1))
+FROM events_geo
+WHERE ST_DISTANCE(point, ST_Point(-122, 37, 1)) < 50000
+limit 1000
+```

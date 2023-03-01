@@ -7,8 +7,8 @@ import difflib
 
 class SeenCommands:
     def __init__(self):
-        self.commands = {}
-        self.current_tab = None
+        self.commands = {"1": []}
+        self.current_tab = "1"
 
     def set_current_tab(self, current_tab):
         self.current_tab = current_tab
@@ -117,7 +117,7 @@ def to_cliclick(parsed_row, seen_commands):
         print(f"# {parsed_row[1]}")
 
 def parse_node(node, seen_commands):
-    if node.t  == "code_block":        
+    if node.t  == "code_block":
         lines = [line for line in node.literal.split("\n") if line != ""]
 
         previous_command = seen_commands.find_previous_similar_command(lines)        
@@ -142,19 +142,23 @@ def parse_node(node, seen_commands):
             print("kp:enter")
 
         else:
-            for line in lines:
-                print("kd:cmd")
-                print("kd:shift")
-                print("kp:arrow-left")
-                print("ku:shift")
-                print("ku:cmd")
-                print("ku:fn")
-                leading_spaces = len(line) - len(line.lstrip())
-                for i in range(0, leading_spaces):
-                    print("kp:space")
-
-                print(f"t:{line.lstrip()}")
-                print("kp:enter")
+            for idx,line in enumerate(lines):
+                if node.info == "web":
+                    print("kd:cmd")
+                    print("kd:shift")
+                    print("kp:arrow-left")
+                    print("ku:shift")
+                    print("ku:cmd")
+                    print("ku:fn")
+                    leading_spaces = len(line) - len(line.lstrip())
+                    for i in range(0, leading_spaces):
+                        print("kp:space")
+                    print(f"t:{line.lstrip()}")
+                    if idx != len(lines)-1:                        
+                        print("kp:enter")
+                else:
+                    print(f"t:{line.lstrip()}")
+                    print("kp:enter")
         
         seen_commands.add(lines)
 
