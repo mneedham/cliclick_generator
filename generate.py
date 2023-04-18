@@ -212,19 +212,16 @@ def parse_node(node, seen_commands):
         cliclick_commands = []
         lines = [line for line in node.literal.split("\n") if line != ""]
 
-        previous_command, index = seen_commands.find_previous_similar_command(lines)        
-        print(previous_command, index)
+        previous_command, index = seen_commands.find_previous_similar_command(lines)
         # if previous_command and len(lines) == 1 and len(lines[0]) > 30 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):
         if previous_command and len(lines) == 1 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):    
             our_command = "\n".join(lines)
-            matching_index = difflib.SequenceMatcher(None, our_command, previous_command).find_longest_match().size
-            print(f"matching_index: {matching_index}")
+            matching_index = difflib.SequenceMatcher(None, our_command, previous_command).find_longest_match().size            
             bit_to_delete = previous_command[matching_index:]
 
             cliclick_commands += search_command()
             cliclick_commands.append(f"t:{our_command.split(' ')[0]}")
             for _ in range(0, index):
-                print("adding search command")
                 cliclick_commands += search_command()
             cliclick_commands += end_of_line_command()
 
