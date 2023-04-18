@@ -208,6 +208,15 @@ def end_of_line_command():
         "ku:fn"
     ]
 
+def find_matching_from_start(s1, s2):
+    buffer = ""
+    for c1, c2 in zip(s1, s2):
+        if c1 == c2:
+            buffer += c1
+        else:
+            break
+    return buffer
+
 def parse_node(node, seen_commands, char_delete=True):    
     if node.t  == "code_block":     
         cliclick_commands = []
@@ -217,8 +226,14 @@ def parse_node(node, seen_commands, char_delete=True):
         # if previous_command and len(lines) == 1 and len(lines[0]) > 30 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):
         if previous_command and len(lines) == 1 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):    
             our_command = "\n".join(lines)
-            matching_index = difflib.SequenceMatcher(None, our_command, previous_command).find_longest_match().size            
-            bit_to_delete = previous_command[matching_index:]
+            print(our_command)
+            print(previous_command)
+            
+            bit_that_matches = find_matching_from_start(our_command, previous_command)
+            matching_index = len(bit_that_matches)
+        
+            # matching_index = difflib.SequenceMatcher(None, our_command, previous_command).find_longest_match().size                        
+            bit_to_delete = previous_command[matching_index:]            
 
             cliclick_commands += search_command()
             cliclick_commands.append(f"t:{our_command.split(' ')[0]}")
@@ -229,12 +244,12 @@ def parse_node(node, seen_commands, char_delete=True):
             if char_delete:
                 for i in range(0, len(bit_to_delete) ):
                     cliclick_commands.append("kp:delete")
-            else:
-                words = re.split(r"[.\s]+", bit_to_delete)
+            else:                
+                words = re.split(r"[\.\s\-\|/=]+", bit_to_delete)
+                print(f"bit_to_delete: {bit_to_delete}, {words}")
                 if len(words) > 0:
                     cliclick_commands.append("kd:ctrl")
                     for i in range(0, len(words) ):
-
                         cliclick_commands.append("t:w")
                     cliclick_commands.append("ku:ctrl")
                     cliclick_commands.append("ku:fn")

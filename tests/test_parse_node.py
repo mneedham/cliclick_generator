@@ -123,3 +123,21 @@ def test_schema_table_config():
      'kp:enter'
     ]
     assert parse_node(node, seen_commands, char_delete=False) == expected_result
+
+def test_schema_table_config_properties():
+    seen_commands = SeenCommands()
+    seen_commands.set_current_tab("1")
+    seen_commands.add(["pygmentize -O style=github-dark config/schema.json"])
+    seen_commands.add(["pygmentize -O style=github-dark config/table.json | less"])
+
+    node = MockNode(t="code_block", literal="pygmentize -l properties -O style=github-dark config/controller-conf.conf", info="")
+    seen_commands = seen_commands
+    expected_result = [
+     'kd:ctrl', 't:r', 'ku:ctrl', 'ku:fn', 
+     't:pygmentize', 
+     'kd:ctrl', 't:e', 'ku:ctrl', 'ku:fn', 
+     'kd:ctrl', 't:w', 't:w', 't:w', 't:w', 't:w', 't:w', 't:w', 't:w', 'ku:ctrl', 'ku:fn',
+     't:l properties -O style=github-dark config/controller-conf.conf',
+     'kp:enter'
+    ]
+    assert parse_node(node, seen_commands, char_delete=False) == expected_result
