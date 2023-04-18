@@ -52,3 +52,40 @@ from foo
         'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn', 't:from foo'
     ]
     assert parse_node(node, seen_commands) == expected_result
+
+
+def test_reuse_existing_command():
+    seen_commands = SeenCommands()
+    seen_commands.set_current_tab("1")
+    seen_commands.add(["foo"])
+    seen_commands.add(["barfoo"])
+    seen_commands.add(["tennisbarfoo"])
+
+    node = MockNode(t="code_block", literal="foo", info="")
+    seen_commands = seen_commands
+    expected_result = [
+     'kd:ctrl', 't:r', 'ku:ctrl', 'ku:fn', 
+     't:foo', 
+     'kd:ctrl', 't:r', 'ku:ctrl', 'ku:fn', 'kd:ctrl', 
+     't:r', 
+     'ku:ctrl', 'ku:fn', 
+     'kd:ctrl', 't:e', 'ku:ctrl', 'ku:fn', 
+     'kp:enter'   
+    ]
+    assert parse_node(node, seen_commands) == expected_result
+
+def test_reuse_partial_existing_command():
+    seen_commands = SeenCommands()
+    seen_commands.set_current_tab("1")
+    seen_commands.add(["foobar"])
+
+    node = MockNode(t="code_block", literal="foo", info="")
+    seen_commands = seen_commands
+    expected_result = [
+     'kd:ctrl', 't:r', 'ku:ctrl', 'ku:fn', 
+     't:foo', 
+     'kd:ctrl', 't:e', 'ku:ctrl', 'ku:fn', 
+     'kp:delete','kp:delete','kp:delete',
+     'kp:enter'   
+    ]
+    assert parse_node(node, seen_commands) == expected_result

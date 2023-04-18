@@ -19,11 +19,9 @@ class SeenCommands:
         for command in reversed(self.commands[self.current_tab]):            
             if needle in command:
                 matching_commands.append(command)
-
-        # print(f"** {matching_commands}")
-        for idx, command in enumerate(matching_commands):            
+        
+        for idx, command in enumerate(matching_commands):
             if command.startswith(needle):
-                # print("****" + str(idx))
                 return command, idx
         
         return None, 0
