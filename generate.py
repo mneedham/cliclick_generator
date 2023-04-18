@@ -36,7 +36,7 @@ page_keys = {
     "up": "page-up"
 }
 
-def to_cliclick(parsed_row, seen_commands):
+def to_cliclick(parsed_row):
     cliclick_commands = []
     if parsed_row[0] == "cliclick" or parsed_row[0] == "cliclick2":
         for i in range(0, int(parsed_row[4])):
@@ -264,7 +264,7 @@ def parse_node(node, seen_commands):
 
     elif node.t == "text":
         if node.literal:
-            return to_cliclick(parse_line(node.literal), seen_commands)
+            return to_cliclick(parse_line(node.literal))
     else:
         return []
 
