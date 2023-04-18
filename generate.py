@@ -17,14 +17,14 @@ def commands():
     (pp.Literal("wait") + pp.Literal(":") + pp.Word(pp.nums)) |    
     (pp.Literal("changeApp") + pp.Literal(":") + pp.Word(pp.alphas)) |
     (pp.Literal("raycastSwitchApp") + pp.Suppress(":") + pp.Word(pp.alphanums+"-,}{+ ")) |
-    (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":")) |
+    (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":.//")) |
     (pp.Literal("typeSlowly") + pp.Suppress(":") + pp.Word(pp.alphanums + ": {}.-,") + pp.Suppress("||") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeGoToLine") + pp.Suppress(":") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeSearch") + pp.Suppress(":") + pp.Word(pp.alphanums + "._ ")) |
     (pp.Literal("click") + pp.Suppress(":") + pp.Word(pp.alphas)) |
     (pp.Literal("moveAndClick") + pp.Suppress(":") + pp.Word(pp.alphas)) |
     (pp.Literal("movePage") + pp.Suppress(":") + pp.Word(pp.alphas) + pp.Suppress(",") + pp.Word(pp.nums)) |    
-    (pp.Literal("//") + pp.Word(pp.alphanums + " -{}/.")) |
+    (pp.Literal("//") + pp.Word(pp.alphanums + " -{}/.!@#$%^&*():|")) |
     (pp.Literal("```") + pp.QuotedString(pp.alphas+" ", multiline=True) + pp.Literal("```")) |
     pp.Literal("vsCodeSave") | pp.Literal("vsCodeEndOfFile") | pp.Literal("clearScreen") | pp.Literal("scrollToEnd") | pp.Literal("quitLess") | pp.Literal("selectAll") | pp.Literal("refreshScreen")
 )
