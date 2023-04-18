@@ -8,18 +8,20 @@ from seen_commands import SeenCommands
 
 command = (
     (pp.Literal("cliclick") + pp.Suppress(":") + pp.Word(pp.alphanums+"-") + pp.Literal(":") + pp.Word(pp.alphanums+"-"+" ") + pp.Suppress(",") + pp.Word(pp.nums)) | 
-    (pp.Literal("cliclick2") + pp.Suppress(":") + pp.Word(pp.alphanums+"-") + pp.Literal(":") + pp.Word(pp.alphanums+"-"+","+"}"+"{"+"+") + pp.Suppress("||") + pp.Word(pp.nums)) | 
+    (pp.Literal("cliclick2") + pp.Suppress(":") +  pp.Word(pp.alphanums+"-") + pp.Literal(":") + ( pp.Word(pp.alphanums+"-,}{+ ") ) + pp.Suppress("||") + pp.Word(pp.nums)) | 
     (pp.Literal("selectWindow") + pp.Literal(":") + pp.Word(pp.nums)) | 
     (pp.Literal("scrollDown") + pp.Literal(":") + pp.Word(pp.nums)) | 
     (pp.Literal("selectTab") + pp.Literal(":") + pp.Word(pp.nums)) |
     (pp.Literal("delete") + pp.Suppress(":") + pp.Word(pp.nums)) |
     (pp.Literal("wait") + pp.Literal(":") + pp.Word(pp.nums)) |    
     (pp.Literal("changeApp") + pp.Literal(":") + pp.Word(pp.alphas)) |
+    (pp.Literal("raycastSwitchApp") + pp.Suppress(":") + pp.Word(pp.alphanums+"-,}{+ ")) |
     (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":")) |
     (pp.Literal("typeSlowly") + pp.Suppress(":") + pp.Word(pp.alphanums + ":" + " ") + pp.Suppress("||") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeGoToLine") + pp.Literal(":") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeSearch") + pp.Literal(":") + pp.Word(pp.alphanums + ".")) |
     (pp.Literal("click") + pp.Suppress(":") + pp.Word(pp.alphas)) |
+    (pp.Literal("moveAndClick") + pp.Suppress(":") + pp.Word(pp.alphas)) |
     (pp.Literal("movePage") + pp.Suppress(":") + pp.Word(pp.alphas) + pp.Suppress(",") + pp.Word(pp.nums)) |
     pp.Literal("vsCodeSave") | pp.Literal("vsCodeEndOfFile") | pp.Literal("clearScreen") | pp.Literal("scrollToEnd") | pp.Literal("quitLess") | pp.Literal("selectAll") | pp.Literal("refreshScreen") |
     (pp.Literal("//") + pp.Word(pp.alphanums + " ")) |
@@ -113,6 +115,18 @@ def to_cliclick(parsed_row, seen_commands):
         cliclick_commands.append(f"t:{parsed_row[2]}")
         cliclick_commands.append("kp:enter")
 
+    if parsed_row[0] == "raycastSwitchApp":
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append("kp:space")
+        cliclick_commands.append("ku:cmd")
+        cliclick_commands.append("t:Switch")
+        cliclick_commands.append("kp:enter")
+        cliclick_commands.append("w:500")
+        cliclick_commands.append(f"t:{parsed_row[1]}")        
+        cliclick_commands.append("w:500")
+        cliclick_commands.append("kp:enter")
+        cliclick_commands.append("w:500")
+
     if parsed_row[0] == "chromeUrlBar":        
         cliclick_commands.append("kd:cmd")
         cliclick_commands.append("t:l")
@@ -120,7 +134,7 @@ def to_cliclick(parsed_row, seen_commands):
         cliclick_commands.append(f"t:{parsed_row[1]}")
         cliclick_commands.append("kp:enter")
         
-    if parsed_row[0] == "click":
+    if parsed_row[0] == "moveAndClick":
         if parsed_row[1] == "background":
             cliclick_commands.append("m:1980,320")
             cliclick_commands.append("c:1980,320")
@@ -128,8 +142,16 @@ def to_cliclick(parsed_row, seen_commands):
             cliclick_commands.append("m:3597,757")
             cliclick_commands.append("c:3597,757")
         if parsed_row[1] == "queryEditor":
-            cliclick_commands.append("m:1650,550")
-            cliclick_commands.append("c:1650,550")
+            cliclick_commands.append("m:2441,503")
+            cliclick_commands.append("c:2441,503")
+
+    if parsed_row[0] == "click":
+        if parsed_row[1] == "background":
+            cliclick_commands.append("c:1980,320")
+        if parsed_row[1] == "runQuery":
+            cliclick_commands.append("c:3597,757")
+        if parsed_row[1] == "queryEditor":
+            cliclick_commands.append("c:2421,519")
 
     if parsed_row[0] == "movePage":
         for i in range(0, int(parsed_row[2])):
@@ -190,7 +212,7 @@ def parse_node(node, seen_commands):
         lines = [line for line in node.literal.split("\n") if line != ""]
 
         previous_command, index = seen_commands.find_previous_similar_command(lines)        
-        if previous_command and len(lines) == 1 and len(lines[0]) > 30 and (not " =" in lines[0][:20]) and not(node.info == "web"):
+        if previous_command and len(lines) == 1 and len(lines[0]) > 30 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):
             our_command = "\n".join(lines)
             matching_index = difflib.SequenceMatcher(None, our_command, previous_command).find_longest_match().size
             bit_to_delete = previous_command[matching_index:]
@@ -211,6 +233,7 @@ def parse_node(node, seen_commands):
             for idx,line in enumerate(lines):
                 if node.info == "singleLine":
                     cliclick_commands.append(f"t:{line}")
+                    cliclick_commands.append("kp:enter")
                 elif node.info == "web":
                     leading_spaces = len(line) - len(line.lstrip())
                     if leading_spaces == previous_leading_spaces:

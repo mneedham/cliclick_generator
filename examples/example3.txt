@@ -1,0 +1,3 @@
+wait:4000
+cliclick:w:1000,2
+cliclick:kp:page-down,2

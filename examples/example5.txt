@@ -1,0 +1,3 @@
+changeApp:Visual
+vsCodeSearch:generate_foo.py
+vsCodeGoToLine:23
