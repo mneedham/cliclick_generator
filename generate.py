@@ -6,7 +6,8 @@ import frontmatter
 import difflib
 from seen_commands import SeenCommands
 
-command = (
+def commands():
+    return (
     (pp.Literal("cliclick") + pp.Suppress(":") + pp.Word(pp.alphanums+"-") + pp.Literal(":") + pp.Word(pp.alphanums+"-"+" ") + pp.Suppress(",") + pp.Word(pp.nums)) | 
     (pp.Literal("cliclick2") + pp.Suppress(":") +  pp.Word(pp.alphanums+"-") + pp.Literal(":") + ( pp.Word(pp.alphanums+"-,}{+ ") ) + pp.Suppress("||") + pp.Word(pp.nums)) | 
     (pp.Literal("selectWindow") + pp.Literal(":") + pp.Word(pp.nums)) | 
@@ -17,9 +18,9 @@ command = (
     (pp.Literal("changeApp") + pp.Literal(":") + pp.Word(pp.alphas)) |
     (pp.Literal("raycastSwitchApp") + pp.Suppress(":") + pp.Word(pp.alphanums+"-,}{+ ")) |
     (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":")) |
-    (pp.Literal("typeSlowly") + pp.Suppress(":") + pp.Word(pp.alphanums + ":" + " ") + pp.Suppress("||") + pp.Word(pp.nums)) |
+    (pp.Literal("typeSlowly") + pp.Suppress(":") + pp.Word(pp.alphanums + ": {}.-,") + pp.Suppress("||") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeGoToLine") + pp.Suppress(":") + pp.Word(pp.nums)) |
-    (pp.Literal("vsCodeSearch") + pp.Suppress(":") + pp.Word(pp.alphanums + ".")) |
+    (pp.Literal("vsCodeSearch") + pp.Suppress(":") + pp.Word(pp.alphanums + "._ ")) |
     (pp.Literal("click") + pp.Suppress(":") + pp.Word(pp.alphas)) |
     (pp.Literal("moveAndClick") + pp.Suppress(":") + pp.Word(pp.alphas)) |
     (pp.Literal("movePage") + pp.Suppress(":") + pp.Word(pp.alphas) + pp.Suppress(",") + pp.Word(pp.nums)) |    
@@ -29,7 +30,7 @@ command = (
 )
 
 def parse_line(line):
-    return command.parse_string(line)
+    return commands().parse_string(line)
 
 page_keys = {
     "down": "page-down",
