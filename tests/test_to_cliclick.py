@@ -163,3 +163,8 @@ def test_to_cliclick_select_tab():
     expected_result = ['kd:cmd', 't:2', 'ku:cmd']
     assert to_cliclick(parsed_row, seen_commands) == expected_result
     assert seen_commands.current_tab == '2'
+
+def test_to_cliclick_quit_less():
+    parsed_row = parse_line("quitLess")
+    expected_result = ['t:q']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
