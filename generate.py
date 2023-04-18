@@ -226,8 +226,8 @@ def parse_node(node, seen_commands, char_delete=True):
         # if previous_command and len(lines) == 1 and len(lines[0]) > 30 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):
         if previous_command and len(lines) == 1 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):    
             our_command = "\n".join(lines)
-            print(our_command)
-            print(previous_command)
+            # print(our_command)
+            # print(previous_command)
             
             bit_that_matches = find_matching_from_start(our_command, previous_command)
             matching_index = len(bit_that_matches)
@@ -246,7 +246,7 @@ def parse_node(node, seen_commands, char_delete=True):
                     cliclick_commands.append("kp:delete")
             else:                
                 words = re.split(r"[\.\s\-\|/=]+", bit_to_delete)
-                print(f"bit_to_delete: {bit_to_delete}, {words}")
+                # print(f"bit_to_delete: {bit_to_delete}, {words}")
                 if len(words) > 0:
                     cliclick_commands.append("kd:ctrl")
                     for i in range(0, len(words) ):
