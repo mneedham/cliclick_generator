@@ -18,14 +18,14 @@ command = (
     (pp.Literal("raycastSwitchApp") + pp.Suppress(":") + pp.Word(pp.alphanums+"-,}{+ ")) |
     (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":")) |
     (pp.Literal("typeSlowly") + pp.Suppress(":") + pp.Word(pp.alphanums + ":" + " ") + pp.Suppress("||") + pp.Word(pp.nums)) |
-    (pp.Literal("vsCodeGoToLine") + pp.Literal(":") + pp.Word(pp.nums)) |
-    (pp.Literal("vsCodeSearch") + pp.Literal(":") + pp.Word(pp.alphanums + ".")) |
+    (pp.Literal("vsCodeGoToLine") + pp.Suppress(":") + pp.Word(pp.nums)) |
+    (pp.Literal("vsCodeSearch") + pp.Suppress(":") + pp.Word(pp.alphanums + ".")) |
     (pp.Literal("click") + pp.Suppress(":") + pp.Word(pp.alphas)) |
     (pp.Literal("moveAndClick") + pp.Suppress(":") + pp.Word(pp.alphas)) |
-    (pp.Literal("movePage") + pp.Suppress(":") + pp.Word(pp.alphas) + pp.Suppress(",") + pp.Word(pp.nums)) |
-    pp.Literal("vsCodeSave") | pp.Literal("vsCodeEndOfFile") | pp.Literal("clearScreen") | pp.Literal("scrollToEnd") | pp.Literal("quitLess") | pp.Literal("selectAll") | pp.Literal("refreshScreen") |
-    (pp.Literal("//") + pp.Word(pp.alphanums + " ")) |
-    (pp.Literal("```") + pp.QuotedString(pp.alphas+" ", multiline=True) + pp.Literal("```"))
+    (pp.Literal("movePage") + pp.Suppress(":") + pp.Word(pp.alphas) + pp.Suppress(",") + pp.Word(pp.nums)) |    
+    (pp.Literal("//") + pp.Word(pp.alphanums + " -{}/.")) |
+    (pp.Literal("```") + pp.QuotedString(pp.alphas+" ", multiline=True) + pp.Literal("```")) |
+    pp.Literal("vsCodeSave") | pp.Literal("vsCodeEndOfFile") | pp.Literal("clearScreen") | pp.Literal("scrollToEnd") | pp.Literal("quitLess") | pp.Literal("selectAll") | pp.Literal("refreshScreen")
 )
 
 def parse_line(line):
@@ -67,7 +67,7 @@ def to_cliclick(parsed_row, seen_commands):
         cliclick_commands.append(f"kd:ctrl")
         cliclick_commands.append(f"t:g")
         cliclick_commands.append(f"ku:ctrl")
-        cliclick_commands.append(f"t:{parsed_row[2]}")
+        cliclick_commands.append(f"t:{parsed_row[1]}")
         cliclick_commands.append(f"w:200")
         cliclick_commands.append(f"kp:enter")
 
@@ -86,7 +86,7 @@ def to_cliclick(parsed_row, seen_commands):
         cliclick_commands.append(f"kd:cmd")
         cliclick_commands.append(f"t:p")
         cliclick_commands.append(f"ku:cmd")
-        cliclick_commands.append(f"t:{parsed_row[2]}")
+        cliclick_commands.append(f"t:{parsed_row[1]}")
         cliclick_commands.append(f"w:200")
         cliclick_commands.append(f"kp:enter")
 
