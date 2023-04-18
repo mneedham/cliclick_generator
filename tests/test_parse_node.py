@@ -89,3 +89,37 @@ def test_reuse_partial_existing_command():
      'kp:enter'   
     ]
     assert parse_node(node, seen_commands) == expected_result
+
+def test_schema_table_config_delete_by_char():
+    seen_commands = SeenCommands()
+    seen_commands.set_current_tab("1")
+    seen_commands.add(["pygmentize -O style=github-dark config/schema.json"])
+
+    node = MockNode(t="code_block", literal="pygmentize -O style=github-dark config/table.json | less", info="")
+    seen_commands = seen_commands
+    expected_result = [
+     'kd:ctrl', 't:r', 'ku:ctrl', 'ku:fn', 
+     't:pygmentize', 
+     'kd:ctrl', 't:e', 'ku:ctrl', 'ku:fn', 
+     'kp:delete','kp:delete','kp:delete','kp:delete','kp:delete','kp:delete','kp:delete','kp:delete','kp:delete','kp:delete','kp:delete',
+     't:table.json | less',
+     'kp:enter'
+    ]
+    assert parse_node(node, seen_commands, char_delete=True) == expected_result
+
+def test_schema_table_config():
+    seen_commands = SeenCommands()
+    seen_commands.set_current_tab("1")
+    seen_commands.add(["pygmentize -O style=github-dark config/schema.json"])
+
+    node = MockNode(t="code_block", literal="pygmentize -O style=github-dark config/table.json | less", info="")
+    seen_commands = seen_commands
+    expected_result = [
+     'kd:ctrl', 't:r', 'ku:ctrl', 'ku:fn', 
+     't:pygmentize', 
+     'kd:ctrl', 't:e', 'ku:ctrl', 'ku:fn', 
+     'kd:ctrl', 't:w', 't:w', 'ku:ctrl', 'ku:fn',
+     't:table.json | less',
+     'kp:enter'
+    ]
+    assert parse_node(node, seen_commands, char_delete=False) == expected_result

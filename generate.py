@@ -1,4 +1,5 @@
 import click
+import re
 import os
 import pyparsing as pp
 import commonmark
@@ -207,7 +208,7 @@ def end_of_line_command():
         "ku:fn"
     ]
 
-def parse_node(node, seen_commands):    
+def parse_node(node, seen_commands, char_delete=True):    
     if node.t  == "code_block":     
         cliclick_commands = []
         lines = [line for line in node.literal.split("\n") if line != ""]
@@ -224,9 +225,21 @@ def parse_node(node, seen_commands):
             for _ in range(0, index):
                 cliclick_commands += search_command()
             cliclick_commands += end_of_line_command()
+            
+            if char_delete:
+                for i in range(0, len(bit_to_delete) ):
+                    cliclick_commands.append("kp:delete")
+            else:
+                words = re.split(r"[.\s]+", bit_to_delete)
+                if len(words) > 0:
+                    cliclick_commands.append("kd:ctrl")
+                    for i in range(0, len(words) ):
 
-            for i in range(0, len(bit_to_delete) ):
-                cliclick_commands.append("kp:delete")
+                        cliclick_commands.append("t:w")
+                    cliclick_commands.append("ku:ctrl")
+                    cliclick_commands.append("ku:fn")
+
+
             
             if len(our_command[matching_index:]) > 0:
                 cliclick_commands.append(f"t:{our_command[matching_index:]}")
@@ -274,7 +287,8 @@ def parse_node(node, seen_commands):
 
 @click.command()
 @click.option('--file-name', required=True, default=None, help='File path')
-def generate(file_name):
+@click.option('--char-delete', required=False, default=None, help='Delete by character')
+def generate(file_name, char_delete):
     parser = commonmark.Parser()
     seen_commands = SeenCommands()
 
@@ -289,7 +303,7 @@ def generate(file_name):
             ast = parser.parse(post.content)
             all_nodes = [node[0] for node in ast.walker()]
             for node in all_nodes:
-                for command in parse_node(node, seen_commands):
+                for command in parse_node(node, seen_commands, char_delete=char_delete):
                     print(command)
 
 if __name__ == "__main__":
