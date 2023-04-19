@@ -18,7 +18,7 @@ def commands():
     (pp.Literal("wait") + pp.Literal(":") + pp.Word(pp.nums)) |    
     (pp.Literal("changeApp") + pp.Literal(":") + pp.Word(pp.alphas)) |
     (pp.Literal("raycastSwitchApp") + pp.Suppress(":") + pp.Word(pp.alphanums+"-,}{+ ")) |
-    (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":.//")) |
+    (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":.//?=%")) |
     (pp.Literal("typeSlowly") + pp.Suppress(":") + pp.Word(pp.alphanums + ": {}.-,") + pp.Suppress("||") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeGoToLine") + pp.Suppress(":") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeSearch") + pp.Suppress(":") + pp.Word(pp.alphanums + "._ ")) |
@@ -27,6 +27,11 @@ def commands():
     (pp.Literal("movePage") + pp.Suppress(":") + pp.Word(pp.alphas) + pp.Suppress(",") + pp.Word(pp.nums)) |    
     (pp.Literal("//") + pp.Word(pp.alphanums + " -{}/.!@#$%^&*():|")) |
     (pp.Literal("```") + pp.QuotedString(pp.alphas+" ", multiline=True) + pp.Literal("```")) |
+    (pp.Literal("jupyter") + pp.Suppress("::") + pp.Literal("notebook") + pp.Suppress("::") + (pp.Literal("command") | pp.Literal("edit")) + pp.Suppress("::") + 
+        (
+            pp.Word(pp.alphanums) + pp.ZeroOrMore(pp.Word("+,") + pp.Word(pp.alphanums))
+        )
+    ) | 
     pp.Literal("vsCodeSave") | pp.Literal("vsCodeEndOfFile") | pp.Literal("clearScreen") | pp.Literal("scrollToEnd") | pp.Literal("quitLess") | pp.Literal("selectAll") | pp.Literal("refreshScreen")
 )
 
@@ -188,6 +193,43 @@ def to_cliclick(parsed_row, seen_commands):
         cliclick_commands.append("ku:shift")
         cliclick_commands.append("ku:fn")
 
+    if parsed_row[0] == "jupyter":
+        if parsed_row[1] == "notebook":
+            if parsed_row[2] == "command":
+                cliclick_commands.append("kp:esc")
+
+                parts = parsed_row[3:]
+
+                if len(parts) == 1:
+                    if parsed_row[3] in ["enter"]:
+                        cliclick_commands.append(f"kp:{parsed_row[3]}")
+                    else:
+                        cliclick_commands.append(f"t:{parsed_row[3]}")
+                else:
+                    if parsed_row[4] == "+":
+                        cliclick_commands.append(f"kd:{parsed_row[3]}")                    
+                        if parsed_row[5] in ["enter"]:
+                            cliclick_commands.append(f"kp:{parsed_row[5]}")
+                        else:
+                            cliclick_commands.append(f"t:{parsed_row[5]}")                    
+                        cliclick_commands.append(f"ku:{parsed_row[3]}")
+                        cliclick_commands.append("ku:fn")
+                    elif parsed_row[4] == ",":
+                        cliclick_commands.append(f"t:{parsed_row[3]}")
+                        cliclick_commands.append(f"t:{parsed_row[5]}")
+
+            elif parsed_row[2] == "edit":
+                parts = parsed_row[3:]
+                cliclick_commands.append(f"kd:{parsed_row[3]}")
+                
+                if parsed_row[5] in ["enter"]:
+                    cliclick_commands.append(f"kp:{parsed_row[5]}")
+                else:
+                    cliclick_commands.append(f"t:{parsed_row[5]}")
+                
+                cliclick_commands.append(f"ku:{parsed_row[3]}")
+                cliclick_commands.append("ku:fn")
+
     if parsed_row[0] == "//":
         cliclick_commands.append(f"# {parsed_row[1]}")
     return cliclick_commands
@@ -224,7 +266,7 @@ def parse_node(node, seen_commands, char_delete=True):
 
         previous_command, index = seen_commands.find_previous_similar_command(lines)
         # if previous_command and len(lines) == 1 and len(lines[0]) > 30 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):
-        if previous_command and len(lines) == 1 and (not " =" in lines[0][:20]) and not(node.info == "web") and not(node.info == "singleLine"):    
+        if previous_command and len(lines) == 1 and (not " =" in lines[0][:20]) and not(node.info in ["web", "singleLine", "jupyter"]):    
             our_command = "\n".join(lines)
             # print(our_command)
             # print(previous_command)
@@ -266,7 +308,7 @@ def parse_node(node, seen_commands, char_delete=True):
                 if node.info == "singleLine":
                     cliclick_commands.append(f"t:{line}")
                     cliclick_commands.append("kp:enter")
-                elif node.info == "web":
+                elif node.info in ["web", 'pinot']:
                     leading_spaces = len(line) - len(line.lstrip())
                     if leading_spaces == previous_leading_spaces:
                         cliclick_commands.append(f"t:{line.lstrip()}")
@@ -283,6 +325,19 @@ def parse_node(node, seen_commands, char_delete=True):
                     if idx != len(lines)-1:                        
                         cliclick_commands.append("kp:enter")
                     previous_leading_spaces = leading_spaces
+                elif node.info in ["jupyter"]:
+                    leading_spaces = len(line) - len(line.lstrip())
+                    cliclick_commands.append("kd:cmd")
+                    cliclick_commands.append("kd:shift")
+                    cliclick_commands.append("kp:arrow-left")
+                    cliclick_commands.append("ku:shift")
+                    cliclick_commands.append("ku:cmd")
+                    cliclick_commands.append("ku:fn")                    
+                    for i in range(0, leading_spaces):
+                        cliclick_commands.append("kp:space")
+                    cliclick_commands.append(f"t:{line.lstrip()}")
+                    if idx != len(lines)-1:                        
+                        cliclick_commands.append("kp:enter")
                 else:
                     leading_spaces = len(line) - len(line.lstrip())
                     for i in range(0, leading_spaces):

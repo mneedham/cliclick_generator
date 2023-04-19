@@ -32,6 +32,53 @@ from foo
     ]
     assert parse_node(node, seen_commands) == expected_result
 
+def test_parse_node_jupyter_simple():
+    query = """%%sql
+select *
+from foo
+"""
+
+    node = MockNode(
+        t="code_block", 
+        literal=query.strip('\n'), 
+        info="jupyter")
+    seen_commands = SeenCommands()
+    expected_result = [
+        'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn',
+        't:%%sql', 'kp:enter',
+        'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn',
+        't:select *', 'kp:enter',
+        'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn',
+        't:from foo'
+    ]
+    assert parse_node(node, seen_commands) == expected_result
+
+
+def test_parse_node_jupyter_multi_line():
+    query = """%%sql
+SELECT station_name,
+       date_trunc('DAY', ts) AS day
+FROM bikeStations
+"""
+
+    node = MockNode(
+        t="code_block", 
+        literal=query.strip('\n'), 
+        info="jupyter")
+    seen_commands = SeenCommands()
+    expected_result = [
+        'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn',
+        't:%%sql', 'kp:enter',
+        'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn',
+        't:SELECT station_name,', 'kp:enter',
+        'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn',
+        'kp:space','kp:space','kp:space','kp:space','kp:space','kp:space','kp:space',"t:date_trunc('DAY', ts) AS day", 'kp:enter',
+        'kd:cmd', 'kd:shift', 'kp:arrow-left', 'ku:shift', 'ku:cmd', 'ku:fn',
+        't:FROM bikeStations'
+    ]
+    assert parse_node(node, seen_commands) == expected_result
+
+
 def test_parse_node_web_indentation():
     query = """
 select a, b

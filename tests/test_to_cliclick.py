@@ -72,6 +72,11 @@ def test_to_cliclick_raycast_switch_app():
     expected_result = ['kd:cmd', 'kp:space', 'ku:cmd', 't:Switch', 'kp:enter', 'w:500', 't:Telegram', 'w:500', 'kp:enter', 'w:500']
     assert to_cliclick(parsed_row, SeenCommands()) == expected_result
 
+def test_to_cliclick_raycast_switch_app_multi_word():
+    parsed_row = parse_line("raycastSwitchApp:Chrome Person 1")
+    expected_result = ['kd:cmd', 'kp:space', 'ku:cmd', 't:Switch', 'kp:enter', 'w:500', 't:Chrome Person 1', 'w:500', 'kp:enter', 'w:500']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
 def test_to_cliclick_vs_code_save():
     parsed_row = parse_line("vsCodeSave")
     expected_result = ['kd:cmd', 't:s', 'ku:cmd']
@@ -157,6 +162,11 @@ def test_to_cliclick_chrome_url_bar():
     expected_result = ['kd:cmd', 't:l', 'ku:cmd', 't:example.com', 'kp:enter']
     assert to_cliclick(parsed_row, SeenCommands()) == expected_result
 
+def test_to_cliclick_chrome_url_bar_complex():
+    parsed_row = parse_line("chromeUrlBar:http://localhost:8888/login?next=%2Fnotebooks%2Fnotebooks%2FDuckDB%2520SQL%2520Window%2520Functions.ipynb?token=cddefbcc53de984b40c575e2aaf0c47fd03329c1e8f1a4da")
+    expected_result = ['kd:cmd', 't:l', 'ku:cmd', 't:http://localhost:8888/login?next=%2Fnotebooks%2Fnotebooks%2FDuckDB%2520SQL%2520Window%2520Functions.ipynb?token=cddefbcc53de984b40c575e2aaf0c47fd03329c1e8f1a4da', 'kp:enter']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
 def test_to_cliclick_select_tab():
     seen_commands = SeenCommands()
     parsed_row = parse_line("selectTab:2")
@@ -167,4 +177,35 @@ def test_to_cliclick_select_tab():
 def test_to_cliclick_quit_less():
     parsed_row = parse_line("quitLess")
     expected_result = ['t:q']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+def test_to_cliclick_jupyter_cell_below():
+    parsed_row = parse_line("jupyter::notebook::command::b")
+    expected_result = ['kp:esc', "t:b"]
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+def test_to_cliclick_jupyter_enter():
+    parsed_row = parse_line("jupyter::notebook::command::enter")
+    expected_result = ['kp:esc', "kp:enter"]
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+def test_to_cliclick_jupyter_run_query():
+    parsed_row = parse_line("jupyter::notebook::edit::cmd+enter")
+    expected_result = ["kd:cmd", 'kp:enter', 'ku:cmd', 'ku:fn']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+def test_to_cliclick_jupyter_save_notebook():
+    parsed_row = parse_line("jupyter::notebook::command::cmd+s")
+    expected_result = ['kp:esc', "kd:cmd", 't:s', 'ku:cmd', 'ku:fn']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+
+def test_to_cliclick_jupyter_merge_cells():
+    parsed_row = parse_line("jupyter::notebook::command::shift+m")
+    expected_result = ['kp:esc',"kd:shift", 't:m', 'ku:shift', 'ku:fn']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+def test_to_cliclick_jupyter_delete_cell():
+    parsed_row = parse_line("jupyter::notebook::command::d,d")
+    expected_result = ['kp:esc', "t:d", "t:d"]
     assert to_cliclick(parsed_row, SeenCommands()) == expected_result
