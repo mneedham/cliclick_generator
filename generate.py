@@ -7,17 +7,21 @@ import frontmatter
 import difflib
 from seen_commands import SeenCommands
 
+
+cliclick_command = pp.Word(pp.alphanums+"-") + pp.Literal(":") + pp.Word(pp.alphanums+"-,}{+ $;./")
+
 def commands():
     return (
     (pp.Literal("cliclick") + pp.Suppress(":") + pp.Word(pp.alphanums+"-") + pp.Literal(":") + pp.Word(pp.alphanums+"-"+" ") + pp.Suppress(",") + pp.Word(pp.nums)) | 
-    (pp.Literal("cliclick2") + pp.Suppress(":") +  pp.Word(pp.alphanums+"-") + pp.Literal(":") + ( pp.Word(pp.alphanums+"-,}{+ ") ) + pp.Suppress("||") + pp.Word(pp.nums)) | 
+    (pp.Literal("cliclick2") + pp.Suppress(":") +  pp.Word(pp.alphanums+"-") + pp.Literal(":") + ( pp.Word(pp.alphanums+"-,}{+ $;./") ) + pp.Suppress("||") + pp.Word(pp.nums)) | 
     (pp.Literal("selectWindow") + pp.Literal(":") + pp.Word(pp.nums)) | 
     (pp.Literal("scrollDown") + pp.Literal(":") + pp.Word(pp.nums)) | 
     (pp.Literal("selectTab") + pp.Literal(":") + pp.Word(pp.nums)) |
     (pp.Literal("delete") + pp.Suppress(":") + pp.Word(pp.nums)) |
     (pp.Literal("wait") + pp.Literal(":") + pp.Word(pp.nums)) |    
     (pp.Literal("changeApp") + pp.Literal(":") + pp.Word(pp.alphas)) |
-    (pp.Literal("raycastSwitchApp") + pp.Suppress(":") + pp.Word(pp.alphanums+"-,}{+ ")) |
+    (pp.Literal("raycastSwitchApp") + pp.Suppress(":") + pp.Word(pp.alphanums+":-,}{+ ./@~")) |
+    (pp.Literal("raycast::singleCommand") + pp.Suppress(":") + pp.Word(pp.alphanums+":-,}{+ ./@~ ")) |
     (pp.Literal("chromeUrlBar") + pp.Suppress(":") + pp.Word(pp.alphanums + ":.//?=%")) |
     (pp.Literal("typeSlowly") + pp.Suppress(":") + pp.Word(pp.alphanums + ": {}.-,") + pp.Suppress("||") + pp.Word(pp.nums)) |
     (pp.Literal("vsCodeGoToLine") + pp.Suppress(":") + pp.Word(pp.nums)) |
@@ -32,6 +36,12 @@ def commands():
             pp.Word(pp.alphanums) + pp.ZeroOrMore(pp.Word("+,") + pp.Word(pp.alphanums))
         )
     ) | 
+    (pp.Literal("cliclick::multiCommand") + pp.Suppress("::")  + 
+        (
+            (cliclick_command + pp.ZeroOrMore(pp.Suppress("||") + cliclick_command)) + pp.Suppress("||") + pp.Word(pp.nums)
+        ) 
+    ) |  
+    pp.Literal("iTerm::copyMode") | pp.Literal("copy") |  pp.Literal("paste") | 
     pp.Literal("vsCodeSave") | pp.Literal("vsCodeEndOfFile") | pp.Literal("clearScreen") | pp.Literal("scrollToEnd") | pp.Literal("quitLess") | pp.Literal("selectAll") | pp.Literal("refreshScreen")
 )
 
@@ -48,6 +58,15 @@ def to_cliclick(parsed_row, seen_commands):
     if parsed_row[0] == "cliclick" or parsed_row[0] == "cliclick2":
         for i in range(0, int(parsed_row[4])):
             cliclick_commands.append("".join(parsed_row[1:4]))
+
+    if parsed_row[0] == "cliclick::multiCommand":
+        array = parsed_row[1:-1]
+        chunk_size = 3
+        for i in range(0, int(parsed_row[-1])):
+            for items in [array[i:i + chunk_size] for i in range(0, len(array), chunk_size)]:
+                cliclick_commands.append("".join(items))
+        cliclick_commands.append("ku:fn")
+
 
 
     if parsed_row[0] == "selectWindow":
@@ -69,6 +88,26 @@ def to_cliclick(parsed_row, seen_commands):
 
     if parsed_row[0] == "wait":
         cliclick_commands.append(f"w:{parsed_row[2]}")
+
+    if parsed_row[0] == "iTerm::copyMode":
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append("kd:shift")
+        cliclick_commands.append("t:c")
+        cliclick_commands.append("ku:cmd")
+        cliclick_commands.append("ku:shift")
+        cliclick_commands.append("ku:fn")
+
+    if parsed_row[0] == "copy":
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append("t:c")
+        cliclick_commands.append("ku:cmd")
+        cliclick_commands.append("ku:fn")
+
+    if parsed_row[0] == "paste":
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append("t:v")
+        cliclick_commands.append("ku:cmd")
+        cliclick_commands.append("ku:fn")
 
     if parsed_row[0] == "vsCodeGoToLine":
         cliclick_commands.append(f"kd:ctrl")
@@ -133,6 +172,13 @@ def to_cliclick(parsed_row, seen_commands):
         cliclick_commands.append("w:500")
         cliclick_commands.append("kp:enter")
         cliclick_commands.append("w:500")
+
+    if parsed_row[0] == "raycast::singleCommand":
+        cliclick_commands.append("kd:cmd")
+        cliclick_commands.append("kp:space")
+        cliclick_commands.append("ku:cmd")
+        cliclick_commands.append(f"t:{parsed_row[1]}")
+        cliclick_commands.append("kp:enter")
 
     if parsed_row[0] == "chromeUrlBar":        
         cliclick_commands.append("kd:cmd")
@@ -201,14 +247,14 @@ def to_cliclick(parsed_row, seen_commands):
                 parts = parsed_row[3:]
 
                 if len(parts) == 1:
-                    if parsed_row[3] in ["enter"]:
+                    if parsed_row[3] in ["enter", "space"]:
                         cliclick_commands.append(f"kp:{parsed_row[3]}")
                     else:
                         cliclick_commands.append(f"t:{parsed_row[3]}")
                 else:
                     if parsed_row[4] == "+":
                         cliclick_commands.append(f"kd:{parsed_row[3]}")                    
-                        if parsed_row[5] in ["enter"]:
+                        if parsed_row[5] in ["enter", "space"]:
                             cliclick_commands.append(f"kp:{parsed_row[5]}")
                         else:
                             cliclick_commands.append(f"t:{parsed_row[5]}")                    
@@ -222,7 +268,7 @@ def to_cliclick(parsed_row, seen_commands):
                 parts = parsed_row[3:]
                 cliclick_commands.append(f"kd:{parsed_row[3]}")
                 
-                if parsed_row[5] in ["enter"]:
+                if parsed_row[5] in ["enter", "space"]:
                     cliclick_commands.append(f"kp:{parsed_row[5]}")
                 else:
                     cliclick_commands.append(f"t:{parsed_row[5]}")

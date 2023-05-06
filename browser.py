@@ -10,8 +10,8 @@ class PinotBrowser:
         self.move_cursor(buttons[0])
         self.driver.execute_script("arguments[0].click()", buttons[0])
 
-    def resize_textarea(self, query):
-        textarea_height = len(query.strip().split("\n")) * 40
+    def resize_textarea(self, query, size_per_row=40):
+        textarea_height = len(query.strip().split("\n")) * size_per_row
         height_str = f"height:{textarea_height}px;"
 
         div = self.driver.find_elements(By.CSS_SELECTOR, ".MuiGrid-root .MuiGrid-item .MuiGrid-grid-xs-12")[0].find_element(By.CSS_SELECTOR, "div")
@@ -30,6 +30,13 @@ class PinotBrowser:
     def move_cursor(self, element):
         self.driver.execute_script("document.cursor.moveToTarget(arguments[0],speed = 3, offsetX = 0.35, offsetY = 0.20 )", element);
         time.sleep(1.5)
+
+    def scroll_to_results(self, extra_pixels=0, wait=0):
+        query_results = self.driver.find_element(By.CSS_SELECTOR, ".MuiAccordionSummary-root[aria-controls='panel1a-content-Query Result']")
+        self.driver.execute_script("arguments[0].scrollIntoView({ behavior: 'smooth', block: 'center' })", query_results)
+
+        if extra_pixels > 0:
+            self.scroll_down_and_up(extra_pixels, wait)
 
     def scroll_down_and_up(self, pixels, wait):
         iterations = list(range(0, pixels, 100))

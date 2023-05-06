@@ -77,6 +77,12 @@ def test_to_cliclick_raycast_switch_app_multi_word():
     expected_result = ['kd:cmd', 'kp:space', 'ku:cmd', 't:Switch', 'kp:enter', 'w:500', 't:Chrome Person 1', 'w:500', 'kp:enter', 'w:500']
     assert to_cliclick(parsed_row, SeenCommands()) == expected_result
 
+def test_to_cliclick_raycast_switch_app_multi_word2():
+    parsed_row = parse_line("raycastSwitchApp:iTerm 2 markh")
+    expected_result = ['kd:cmd', 'kp:space', 'ku:cmd', 't:Switch', 'kp:enter', 'w:500', 't:iTerm 2 markh', 'w:500', 'kp:enter', 'w:500']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+
 def test_to_cliclick_vs_code_save():
     parsed_row = parse_line("vsCodeSave")
     expected_result = ['kd:cmd', 't:s', 'ku:cmd']
@@ -199,6 +205,16 @@ def test_to_cliclick_jupyter_save_notebook():
     expected_result = ['kp:esc', "kd:cmd", 't:s', 'ku:cmd', 'ku:fn']
     assert to_cliclick(parsed_row, SeenCommands()) == expected_result
 
+def test_to_cliclick_jupyter_toggle_scrolling():
+    parsed_row = parse_line("jupyter::notebook::command::shift+o")
+    expected_result = ['kp:esc', "kd:shift", 't:o', 'ku:shift', 'ku:fn']
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result    
+
+def test_to_cliclick_jupyter_toggle_scrolling():
+    parsed_row = parse_line("jupyter::notebook::command::space")
+    expected_result = ['kp:esc', "kp:space"]
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result    
+
 
 def test_to_cliclick_jupyter_merge_cells():
     parsed_row = parse_line("jupyter::notebook::command::shift+m")
@@ -208,4 +224,14 @@ def test_to_cliclick_jupyter_merge_cells():
 def test_to_cliclick_jupyter_delete_cell():
     parsed_row = parse_line("jupyter::notebook::command::d,d")
     expected_result = ['kp:esc', "t:d", "t:d"]
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+def test_to_cliclick_multi_command():
+    parsed_row = parse_line("cliclick::multiCommand::kp:arrow-down||w:500||1")
+    expected_result = ['kp:arrow-down', "w:500", "ku:fn"]
+    assert to_cliclick(parsed_row, SeenCommands()) == expected_result
+
+def test_to_cliclick_multi_command_multiple_times():
+    parsed_row = parse_line("cliclick::multiCommand::kp:arrow-down||w:500||2")
+    expected_result = ['kp:arrow-down', "w:500", 'kp:arrow-down', "w:500", "ku:fn"]
     assert to_cliclick(parsed_row, SeenCommands()) == expected_result
